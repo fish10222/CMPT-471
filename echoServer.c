@@ -10,6 +10,8 @@
 #include <errno.h>
 #include <sys/wait.h>
 #include <string.h>
+#include <sys/select.h>
+
 
 #define   PROTOPORT   20004    /* default protocol port number           */
 #define   QLEN        24        /* size of request queue                  */
@@ -128,8 +130,8 @@ char   *argv[];
       port = PROTOPORT;  
    }
    if (port > 0) {
-      sad.sin_port = htons((u_short)port);
-      sadu.sin_port = htons((u_short)port);
+      sad.sin_port = htons((unsigned short)port);
+      sadu.sin_port = htons((unsigned short)port);
    }
    else {      
       fprintf(stderr,"bad port number %s\n",argv[1]);
