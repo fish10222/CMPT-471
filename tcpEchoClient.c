@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <sys/select.h>
 
 #define PROTOPORT  20004      /* default protocol port number           */
 
@@ -169,7 +170,7 @@ char   *argv[];
       port = PROTOPORT;
    }
    if (port > 0) {
-      sad.sin_port = htons((u_short)port);
+      sad.sin_port = htons((unsigned short)port);
    } else {
       fprintf(stderr,"bad port number %s\n",argv[2]);
       close(fileno(infile));
