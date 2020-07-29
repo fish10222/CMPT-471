@@ -6,7 +6,6 @@
 #include <string.h>
 #include <netinet/tcp.h>
 #include <unistd.h>
-#include <errno.h>
 #include <stdlib.h>
 #include <sys/select.h>
 #include <regex.h>
@@ -15,14 +14,14 @@
 
 #define PROTOPORT 33455    /* default ipv4 protocol port number      */
 #define PROROPORT6 33446   /* default ipv6 protocol port number      */
-#define BUFSIZE 1440 /* default buffer size for ipv4 */
-#define BUFSIZE6 1280 /* default buffer size for ipv6 */
-#define MAX_MSG_LEN 50 /* maximun message lenghth */
+#define BUFSIZE 1440       /* default buffer size for ipv4           */
+#define BUFSIZE6 1280      /* default buffer size for ipv6           */
+#define MAX_MSG_LEN 50     /* maximun message lenghth                */
 
-extern  int      errno;
-char    localhost[] =   "localhost";      /* default host name             */
+
+char    localhost[] =   "localhost";      /* default host name        */
 char    defaultfile[] = "fileToTransfer"; /* default file name        */
-char    outfilename[] = "outputfile";
+char    outfilename[] = "outputfile";     /* default outputfile name  */
 /*------------------------------------------------------------------------
  * Program:   tcpechoclient
  *
@@ -34,7 +33,7 @@ char    outfilename[] = "outputfile";
  * Syntax:    tcpechoclient [[[[host [port]] [hostl] [reqfile]] [outfile]] [lenbuff]] 
  *       host        - name of a host on which server is executing
  *       port        - protocol port number server is using
- *       infile      - input file containing data to be echoed
+ *       reqfile     - file name to be requested from server
  *       outfile     - output file into which echoed data is to be written
  *       hostl       - name of host on which the client is executing
  *                     (not used in this application)
@@ -113,12 +112,12 @@ char   *argv[];
       fprintf (stderr, "	  Default value 20004\n");
       fprintf (stderr, "IP address of local communication endpoint\n");
       fprintf (stderr, "	  Default value localhost\n");
-      fprintf (stderr, "input filename (contains data to be echoed)\n");
-      fprintf (stderr, "	  Default value inputfile\n");
+      fprintf (stderr, "request filename (contains data to be echoed)\n");
+      fprintf (stderr, "	  Default value fileToTransfer\n");
       fprintf (stderr, "output filename (containing echoed data\n");
       fprintf (stderr, "	  Default value outputfile\n");
       fprintf (stderr, "buffer size equals MSS for each packet\n");
-      fprintf (stderr, "          Default value 1448\n");
+      fprintf (stderr, "          Default value 1440(ipv4) or 1280(ipv6)\n");
       fprintf (stderr, "To accept any particular default replace\n");
       fprintf (stderr, "the variable with a . in the argument list\n");
       exit(0);
@@ -274,7 +273,7 @@ char   *argv[];
       free(recvbuf);
       exit(1);
    }
-
+   /* Recieve server response */
    if (recv(sd, recvbuf, lenbuf, 0) < 0){
       fprintf(stderr, "response was not recieved\n");
       close(sd);
@@ -283,7 +282,7 @@ char   *argv[];
       exit(1);
    }
 
-
+   /* Check for special server response */
    if (!strcmp(recvbuf, "COULD NOT OPEN REQUESTED FILE")){
       fprintf(stderr, "server does not have %s\n", file_name);
       close(sd);
