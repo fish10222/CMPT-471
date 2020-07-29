@@ -30,7 +30,7 @@ char    outfilename[] = "outputfile";     /* default outputfile name  */
  *            echo server, read the echoed data from the socket and 
  *            write it into an output file
  *
- * Syntax:    tcpechoclient [[[[host [port]] [hostl] [reqfile]] [outfile]] [lenbuff]] 
+ * Syntax:    tcpechoclient [[[[host [port]] [hostl] [reqfile]]] [lenbuff]] 
  *       host        - name of a host on which server is executing
  *       port        - protocol port number server is using
  *       reqfile     - file name to be requested from server
@@ -96,6 +96,7 @@ char   *argv[];
    outfile = NULL;
    sendbuf = NULL;
    recvbuf = NULL;
+   outfile_name = outfilename;
    memset((char *)&sad,0,sizeof(sad));   /* clear sockaddr structure      */
    memset((char *)&sad6,0,sizeof(sad6)); /* clear sockaddr structure    v6*/
    sad.sin_family = AF_INET;             /* set family to Internet        */
@@ -144,11 +145,11 @@ char   *argv[];
    }
 
    /* Check command-line argument for buffer size  and extract          */
-   /* Default buffer size is 1448                                       */ 
+   /* Default buffer size is 1440                                       */ 
    /* ---to use default use . as argument or give no argument           */
    /* print error message and exit in case of error in reading          */
-   if ( (argc > 6) && strncmp(argv[6],".", 1)!=0 ) {   
-       lenbuf =  atoi(argv[6]);
+   if ( (argc > 5) && strncmp(argv[5],".", 1)!=0 ) {   
+       lenbuf =  atoi(argv[5]);
    } else {
       if (ip_type == 4){
          lenbuf = BUFSIZE;
@@ -170,17 +171,20 @@ char   *argv[];
       exit(1);
    }
 
-   /* Check command-line argument for output filename and extract       */
-   /* Default filename is outputfile                                    */
-   /* ---to use default use . as argument or give no argument           */
-   /* open filename for writing                                         */
-   /* print error message and exit in case of error in open             */
-   if ( (argc > 5) && strncmp(argv[5],".", 1)!=0 ) {   
-      outfile_name = argv[5];
-   } else {
-      outfile_name = outfilename;
-   }
+   // /* Check command-line argument for output filename and extract       */
+   // /* Default filename is outputfile                                    */
+   // /* ---to use default use . as argument or give no argument           */
+   // /* open filename for writing                                         */
+   // /* print error message and exit in case of error in open             */
+   // if ( (argc > 5) && strncmp(argv[5],".", 1)!=0 ) {   
+   //    outfile_name = argv[5];
+   // } else {
+   //    outfile_name = outfilename;
+   // }
 
+   /* Check command-line argument for request filename and extract      */
+   /* Default filename is fileToTransfer                                */
+   /* ---to use default use . as argument or give no argument           */
    if ((argc > 4) && strncmp(argv[4], ".", 1) != 0){
      file_name = argv[4];
    }
