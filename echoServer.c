@@ -12,6 +12,7 @@
 #include <string.h>
 #include <sys/select.h>
 #include <sys/stat.h>
+#include <pthread.h> //for threading , link with lpthread
 
 
 #define PROTOPORT    33455 /* default protocol port number for ipv4 */
@@ -20,6 +21,7 @@
 #define MAX_FILENAME 255   /* max file name size                    */
 
 int   visits       =   0;      /* counts client connections              */
+void *connection_handler(void *);
 /*------------------------------------------------------------------------
  * Program:   echoserver
  *
@@ -61,6 +63,7 @@ char   *argv[];
    int      connfd;               /* client socket descriptor             */
    int      maxfdp1;              /* maximum descriptor plus 1            */
    int      port, port6;          /* protocol port number                 */
+   int      *new_sock;            /* socket for threading                 */
    char     *echobuf;             /* buffer for string the server sends   */
    size_t   lenbuf, lenbuf6;      /* length of buffer                     */
    size_t   maxlen;
@@ -373,26 +376,46 @@ char   *argv[];
                if( setsockopt(tcpsd, IPPROTO_IP, IP_MTU_DISCOVER, &val, sizeof(val) ) < 0) {
                   printf("ERROR setting tcp MTU DISCOVER D\n");
                }
-               connfd = accept(tcpsd, (struct sockaddr *)&cad, &len);
+               while(connfd = accept(tcpsd, (struct sockaddr *)&cad, &len)){
+                  pthread_t sniffer_thread;
+                  new_sock = malloc(1);
+                  *new_sock = connfd;
+               }
             }
             else if (ip_type == 6){
                if( setsockopt(tcpsd6, IPPROTO_IP, IP_MTU_DISCOVER, &val, sizeof(val) ) < 0) {
                   printf("ERROR setting tcp6 MTU DISCOVER D\n");
                }
-               connfd = accept(tcpsd6, (struct sockaddr *)&cad6, &len6);
+               while (connfd = accept(tcpsd6, (struct sockaddr *)&cad6, &len6)){
+                  pthread_t sniffer_thread;
+                  new_sock = malloc(1);
+                  *new_sock = connfd;
+               }
             }
             /* close listening sockets                                  */
-            close(tcpsd);
-            close(tcpsd6);  
+            // close(tcpsd);
+            // close(tcpsd6);  
+
+	      }
+         /* !!!!!!!!!!!!!!!!!!!!end child process!!!!!!!!!!!!!!!!!!!!!!!*/
+
+
+         /* close TCP connection in the parent                          */
+	      close(connfd);
+      }
+   }
+}
+
+void *connection_handler(void *socket_desc){
    	      tval.tv_sec = 5;
    	      tval.tv_usec = 0;
-   	      if( setsockopt(connfd, SOL_SOCKET, SO_RCVTIMEO, &tval, sizeof(tval) ) < 0 ) {
+   	      if( setsockopt(socket_desc, SOL_SOCKET, SO_RCVTIMEO, &tval, sizeof(tval) ) < 0 ) {
 		         printf("ERROR setting RCVTIMEOUT for tcp\n");
   	         }
 
             
             for( ; ; ) {
-	            if ( ( nread = read(connfd, echobuf, lenbuf ) ) < 0) {
+	            if ( ( nread = read(socket_desc, echobuf, lenbuf ) ) < 0) {
                   /*  read nread bytes of data from the      TCP socket */
 		            if (errno == EINTR){
                      /* Interrupted before read try again later         */
@@ -478,53 +501,6 @@ char   *argv[];
             fprintf(stdout, "IP layer\n the number of buffers is ");
             fprintf(stdout, "the number of TCP segments\n");
             free(echobuf);
-	         close(connfd);
+	         close(socket_desc);
 	         exit(0);
-	      }
-         /* !!!!!!!!!!!!!!!!!!!!end child process!!!!!!!!!!!!!!!!!!!!!!!*/
-
-
-         /* close TCP connection in the parent                          */
-	      close(connfd);
-      }
-      // if (FD_ISSET(udpsd, &descset) ) {
-      //    /* processing udp data packet                                  */
-      //    /*  read nread bytes of data from the UDP socket               */
-      //    len = sizeof(cad);
-
-      //    /* !!!!!!!!!!!!!!!!!!start child process!!!!!!!!!!!!!!!!!!!!!!!*/
-      //    if( ( fork()) == 0) {
-      //       	close(tcpsd);
-      //       	if ( ( nread = recvfrom(udpsd, echobuf, lenbuf, 0,
-      //               (struct sockaddr *)&cad, &len ) ) < 0) {
-      //          		if (errno == EINTR)
-      //             		continue;
-		// 	else if (errno == EAGAIN || errno == EWOULDBLOCK )
-		// 		nread =0;
-      //          		else
-      //          			fprintf(stderr, "error reading from socket in UDP!!!xxx");
-      //    	}
-      //    	else {
-      //      		/*  echo nread bytes of data extracted from UDP socket       */
-      //      		/*  increment the number of packets received by 1            */
-      //      		/*  increment the number of bytes echoed by nwrite           */
-   	//     		val = lenbuf;
- 		// 	char str[INET_ADDRSTRLEN];
-      //                   inet_ntop(AF_INET, (struct sockaddr *)&cad, str, INET_ADDRSTRLEN);
- 	   //  		fprintf(stderr, "Server on port %d received datagram %d Bytes long from %s \n",
-      //                   		port, nread, str);
-      //       		if( nread > 0) {
-		// 		nwrite = sendto(udpsd, echobuf, nread, 0, (struct sockaddr *)&cad, INET_ADDRSTRLEN );
-      //       			udpcharcnt += 8*nwrite;
-      //      			packetcnt++;
-		// 	}
-      //    	}	
-      //    	free(echobuf);
-      //    	close(udpsd);
-	 	// exit(1);
-      //    }
-      //    /* !!!!!!!!!!!!!!!!!!!!end child process!!!!!!!!!!!!!!!!!!!!!!!*/
-      // }
-   }
 }
-
