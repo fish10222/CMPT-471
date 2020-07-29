@@ -413,7 +413,7 @@ char   *argv[];
                   /*  increment the number of bytes echoed by nwrite    */
 	               segmentcnt++;
                   tcpcharcntin += 8*nread;
-                  nwrite = write(connfd, echobuf, nread);
+                  // nwrite = write(connfd, echobuf, nread);
                   tcpcharcntout += 8*nwrite;
                   
                   strcpy(filename,echobuf);
@@ -429,38 +429,33 @@ char   *argv[];
                      strcpy(echobuf, "");
                      filesize = -1;
 
-                     if (stat(filename, &statebuff) >= 0)
-                     {
+                     if (stat(filename, &statebuff) >= 0){
                         filesize = statebuff.st_size;
                      }
-                     if (filesize == -1)
-                     {
-                        fprintf(stderr, "fail to get file size");
+                     if (filesize == -1){
+                        fprintf(stderr, "unable to get file size");
                         free(echobuf);
                         close(connfd);
                         exit(1);
                      }
                      sprintf(echobuf, "FILE SIZE IS %ld bytes\n", filesize);
-                     printf("%s", echobuf);
+                     // printf("%s", echobuf);
                      nwrite = write(connfd, echobuf, strlen(echobuf));
                      sleep(1);
                   }
-                  /*start file transmission    */
+                  // SEND FILE
                   send_size = 0;
-                  while (1)
-                  {
+                  while (1){
                      val = fread(echobuf, sizeof(char), lenbuf_type, file);
                      send_size += val;
                      nwrite = write(connfd, echobuf, val);
-                     if (nwrite < 0)
-                     {
+                     if (nwrite < 0){
                         fprintf(stderr, "fail to send file");
                         free(echobuf);
                         close(connfd);
                         exit(1);
                      }
-                     if (send_size >= filesize)
-                     {
+                     if (send_size >= filesize){
                         break;
                      }
                      sleep(1);
