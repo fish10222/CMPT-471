@@ -384,7 +384,6 @@ char   *argv[];
             /* close listening sockets                                  */
             close(tcpsd);
             close(tcpsd6);  
-            // close(udpsd);
    	      tval.tv_sec = 5;
    	      tval.tv_usec = 0;
    	      if( setsockopt(connfd, SOL_SOCKET, SO_RCVTIMEO, &tval, sizeof(tval) ) < 0 ) {

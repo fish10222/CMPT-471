@@ -65,7 +65,6 @@ char   *argv[];
    char    *recvbuf;            /* buffer for data from the server       */
    char    *file_name;          /* name of requested file to server      */
    char     message[MAX_MSG_LEN];/*array for messages that may be used   */
-   FILE    *infile;             /* file descriptor for input file        */
    FILE    *outfile;            /* file descriptor for output file       */
    char    *outfile_name;
    fd_set   descset;            /* set of file and socket descriptors    */
@@ -95,7 +94,6 @@ char   *argv[];
    buffersin = 0;
    EOFFlag = 0;
    buffersout = 0;
-   infile = NULL;
    outfile = NULL;
    sendbuf = NULL;
    recvbuf = NULL;
@@ -184,25 +182,6 @@ char   *argv[];
       outfile_name = outfilename;
    }
 
-   
-   // /* Check command-line argument for input filename and extract        */
-   // /* Default filename is inputfile, to use default use . as argument   */
-   // /* ---to use default use . as argument or give no argument 3 or 4    */
-   // /* open file for reading                                             */
-   // /* print error message and exit if file not found                    */
-   // if ( (argc > 3) && strncmp(argv[3], ".", 1)!=0 ) {   
-   //    infile = fopen(argv[3], "r");
-   // } else {
-   //    infile = fopen( "inputfile", "r");
-   // }
-   // if (infile == NULL) { 
-   //    fprintf(stderr,"input file not found %s\n",argv[3]);
-   //    close(fileno(outfile));
-   //    free(sendbuf);
-   //    free(recvbuf);
-   //    exit(1);
-   // }
-
    if ((argc > 4) && strncmp(argv[4], ".", 1) != 0){
      file_name = argv[4];
    }
@@ -277,14 +256,6 @@ char   *argv[];
       free(recvbuf);
       exit(1);
    }
-   // val = IP_PMTUDISC_DONT;
-   // if(setsockopt(sd, IPPROTO_IP, IP_MTU_DISCOVER, &val, sizeof(val) ) < 0 ) {
-	//    printf("Error setting MTU discover A");
-   // }
-   // val = lenbuf+12;
-   // if(setsockopt(sd, IPPROTO_TCP, TCP_MAXSEG, &val, sizeof(val) ) < 0 ){
-	//    printf("Error setting MAXSEG ofption A");
-   // }
 
    if (val < 0) {
       fprintf(stderr,"connect failed\n");
