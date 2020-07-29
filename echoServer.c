@@ -19,7 +19,6 @@
 #define QLEN         24    /* size of request queue                 */
 #define MAX_FILENAME 255   /* max file name size                    */
 
-int   visits       =   0;      /* counts client connections              */
 /*------------------------------------------------------------------------
  * Program:   echoserver
  *
@@ -49,15 +48,13 @@ int main(argc, argv)
 int   argc;
 char   *argv[];
 {
-   struct   protoent    *udpptrp; /*pointer to tcp protocol table entry   */
    struct   protoent    *tcpptrp; /*pointer to udp protocol table entry   */
    struct   protoent    *tcpptrp6;/*pointer to tcp protocol table entry v6*/
-   struct   sockaddr_in sadu;     /* structure to hold server's address   */
    struct   sockaddr_in sad;      /* structure to hold server's address   */
    struct   sockaddr_in6 sad6;    /* structure to hold server's address v6*/
    struct   sockaddr_in cad;      /* structure to hold client's address   */
    struct   sockaddr_in6 cad6;    /* structure to hold cilent's address v6*/
-   int      tcpsd, udpsd, tcpsd6; /* server socket descriptors            */
+   int      tcpsd, tcpsd6;        /* server socket descriptors            */
    int      connfd;               /* client socket descriptor             */
    int      maxfdp1;              /* maximum descriptor plus 1            */
    int      port, port6;          /* protocol port number                 */
@@ -69,7 +66,6 @@ char   *argv[];
    int      packetcnt;            /* cumulative # of packets received     */
    int      tcpcharcntin;         /* cumulative # of octets received      */
    int      tcpcharcntout;        /* cumulative # of octets sent          */
-   int      udpcharcnt;           /* cumulative # of octets received      */
    int      nread;                /* # of octets received in one read     */
    int      nwrite;               /* # of octets sent in one write        */
    int      retval;               /* function return flag for testing     */ 
@@ -88,13 +84,11 @@ char   *argv[];
    /* Initialize variables                                                */
    packetcnt = 0;
    segmentcnt = 0;
-   udpcharcnt = 0;
    tcpcharcntin = 0;
    tcpcharcntout = 0;
    file = NULL;
    memset((char *)&sad,0,sizeof(sad)); /* clear sockaddr structure      */
    memset((char *)&cad,0,sizeof(cad)); /* clear sockaddr structure      */
-   // memset((char *)&sadu,0,sizeof(sadu));/* clear sockaddr structure     */
    memset((char *)&sad6,0,sizeof(sad6)); /* clear sockaddr structure  v6*/
    memset((char *)&cad6,0,sizeof(cad6)); /* clear sockaddr structure  v6*/
    
@@ -102,8 +96,6 @@ char   *argv[];
    sad.sin_addr.s_addr = INADDR_ANY;   /* set the local IP address      */
    sad6.sin6_family = AF_INET6;        /* set family to Internet      v6*/
    sad6.sin6_addr = in6addr_any;       /* set the local IP address    v6*/
-   // sadu.sin_family = AF_INET;          /* set family to Internet        */
-   // sadu.sin_addr.s_addr = INADDR_ANY;  /* set the local IP address      */
    cad.sin_family = AF_INET;           /* set family to Internet        */
    cad6.sin6_family = AF_INET6;        /* set family to Internet      v6*/
 
@@ -171,7 +163,6 @@ char   *argv[];
    }
    if (port > 0) {
       sad.sin_port = htons((u_short)port);
-      // sadu.sin_port = htons((unsigned short)port);
    }
    else {      
       fprintf(stderr,"bad port number %s\n",argv[1]);
@@ -193,31 +184,6 @@ char   *argv[];
       exit(1);
    }
 
-
-   // /* Map UDP transport protocol name to a pointer to a protocol number  */
-   // /* Create a udp socket with socket descriptor udpsd                   */
-   // /* Bind a local address to the udp socket                             */
-   // /* If any of these three processes fail an explanatory error message  */
-   // /* --- will be printed to stderr and the server will terminate        */
-   // if ( ((long int)(udpptrp = getprotobyname("udp"))) == 0) {
-   //    fprintf(stderr, "cannot map \"udp\" to protocol number");
-   //    free(echobuf);
-   //    exit(1);
-   // }
-   // udpsd = socket(AF_INET, SOCK_DGRAM, udpptrp->p_proto);
-   // if (udpsd < 0) {
-   //    fprintf(stderr, "udp socket creation failed\n");
-   //    free(echobuf);
-   //    exit(1);
-   // }
-   // if (bind(udpsd, (struct sockaddr *)&sadu, sizeof(sadu)) < 0) {
-   //    fprintf(stderr,"udpbind failed\n");
-   //    free(echobuf);
-   //    close(udpsd);
-   //    exit(1);
-   // }
-
-
    /* Map TCP transport protocol name to protocol number                 */
    /* Create a tcp socket with a socket descriptor tcpsd                 */
    /* Bind a local address to the tcp socket                             */
@@ -228,7 +194,6 @@ char   *argv[];
    if ( ((long int)(tcpptrp = getprotobyname("tcp"))) == 0) {
       fprintf(stderr, "cannot map \"tcp\" to protocol number");
       free(echobuf);
-      // close(udpsd);
       exit(1);
    }
    tcpsd = socket(AF_INET, SOCK_STREAM, tcpptrp->p_proto);
@@ -237,20 +202,17 @@ char   *argv[];
       fprintf(stderr, "tcp socket creation failed\n");
       free(echobuf);
       close(tcpsd6);
-      // close(udpsd);
       exit(1);
    }
    if (tcpsd6 < 0) {
       fprintf(stderr, "tcp socket6 creation failed\n");
       free(echobuf);
-      // close(udpsd);
       close(tcpsd);
       exit(1);
    }
    if (bind(tcpsd, (struct sockaddr *)&sad, sizeof(sad)) < 0) {
       fprintf(stderr,"tcp bind failed\n");
       free(echobuf);
-      // close(udpsd);
       close(tcpsd);
       close(tcpsd6);
       exit(1);
@@ -258,7 +220,6 @@ char   *argv[];
    if (bind(tcpsd6, (struct sockaddr *)&sad6, sizeof(sad6)) < 0) {
       fprintf(stderr,"tcp bind6 failed\n");
       free(echobuf);
-      // close(udpsd);
       close(tcpsd);
       close(tcpsd6);
       exit(1);
@@ -266,7 +227,6 @@ char   *argv[];
    if (listen(tcpsd, QLEN) < 0) {
       fprintf(stderr,"listen failed\n");
       free(echobuf);
-      // close(udpsd);
       close(tcpsd);
       close(tcpsd6);
       exit(1);
@@ -274,7 +234,6 @@ char   *argv[];
    if (listen(tcpsd6, QLEN) < 0) {
       fprintf(stderr,"listen6 failed\n");
       free(echobuf);
-      close(udpsd);
       close(tcpsd);
       close(tcpsd6);
       exit(1);
@@ -301,8 +260,6 @@ char   *argv[];
    /* Define the descriptor set for select, unset all descriptors       */
    /* determine the largest descriptor in use                           */
    FD_ZERO(&descset);
-   // if (udpsd < tcpsd) maxfdp1 = tcpsd + 1;
-   // else maxfdp1 = udpsd + 1;
    if (tcpsd > tcpsd6){
       maxfdp1 = tcpsd + 1;
    } else {
@@ -487,44 +444,6 @@ char   *argv[];
          /* close TCP connection in the parent                          */
 	      close(connfd);
       }
-      // if (FD_ISSET(udpsd, &descset) ) {
-      //    /* processing udp data packet                                  */
-      //    /*  read nread bytes of data from the UDP socket               */
-      //    len = sizeof(cad);
-
-      //    /* !!!!!!!!!!!!!!!!!!start child process!!!!!!!!!!!!!!!!!!!!!!!*/
-      //    if( ( fork()) == 0) {
-      //       	close(tcpsd);
-      //       	if ( ( nread = recvfrom(udpsd, echobuf, lenbuf, 0,
-      //               (struct sockaddr *)&cad, &len ) ) < 0) {
-      //          		if (errno == EINTR)
-      //             		continue;
-		// 	else if (errno == EAGAIN || errno == EWOULDBLOCK )
-		// 		nread =0;
-      //          		else
-      //          			fprintf(stderr, "error reading from socket in UDP!!!xxx");
-      //    	}
-      //    	else {
-      //      		/*  echo nread bytes of data extracted from UDP socket       */
-      //      		/*  increment the number of packets received by 1            */
-      //      		/*  increment the number of bytes echoed by nwrite           */
-   	//     		val = lenbuf;
- 		// 	char str[INET_ADDRSTRLEN];
-      //                   inet_ntop(AF_INET, (struct sockaddr *)&cad, str, INET_ADDRSTRLEN);
- 	   //  		fprintf(stderr, "Server on port %d received datagram %d Bytes long from %s \n",
-      //                   		port, nread, str);
-      //       		if( nread > 0) {
-		// 		nwrite = sendto(udpsd, echobuf, nread, 0, (struct sockaddr *)&cad, INET_ADDRSTRLEN );
-      //       			udpcharcnt += 8*nwrite;
-      //      			packetcnt++;
-		// 	}
-      //    	}	
-      //    	free(echobuf);
-      //    	close(udpsd);
-	 	// exit(1);
-      //    }
-      //    /* !!!!!!!!!!!!!!!!!!!!end child process!!!!!!!!!!!!!!!!!!!!!!!*/
-      // }
    }
 }
 
