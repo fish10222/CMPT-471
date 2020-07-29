@@ -10,10 +10,15 @@
 #include <stdlib.h>
 #include <sys/select.h>
 
-#define PROTOPORT  20004      /* default protocol port number           */
+#define PROTOPORT 33455    /* default ipv4 protocol port number      */
+#define PROROPORT6 33446   /* default ipv6 protocol port number      */
+#define BUFSIZE 1440 /* default buffer size for ipv4 */
+#define BUFSIZE6 1280 /* default buffer size for ipv6 */
 
 extern  int      errno;
 char    localhost[] =   "localhost";   /* default host name             */
+char    defaultfile[] =   "fileToTransfer"; /* default file name        */
+
 /*------------------------------------------------------------------------
  * Program:   tcpechoclient
  *
@@ -66,7 +71,7 @@ char   *argv[];
    int      buffersout;        /* number of buffers received through    */
                                /* the socket                            */
    int      val;
-
+   int      protocol;          /* type of connection protocol           */ 
    /* Initialize variables */
    charsin = 0;
    charsout = 0;
